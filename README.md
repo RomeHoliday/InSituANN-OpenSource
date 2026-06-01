@@ -1,17 +1,21 @@
-# InSituANN Open-Source Release
+# InSituANN Query-Time Source Release
 
-This is the open-source release for InSituANN.  It keeps the core
-implementation and the scripts needed to reproduce the main paper pipeline.
+This repository contains the query-time search core for InSituANN.  It focuses
+on the serving path: GPU IVF routing, on-device top-k selection, CPU exact
+verification over host-resident vectors, and residual-PQ candidate pruning.
+
+Large datasets, generated index artifacts, offline builders, auxiliary
+experimental runners, third-party comparison code, plotting code, and paper
+result directories are not included.
 
 ## What Is Included
 
-- `cuda/`: core CUDA/C++ implementation for IVF routing, GPU top-k selection,
-  k-means/reorder utilities, Exact-CPU fine search, CPU residual-PQ kernels, and
-  shared GPU utilities.
-- `scripts/`: selected dataset conversion, ground-truth generation, PQ
-  training, and fast-build scripts.
-- `updates/`: CUDA update-overlay runners for Exact-CPU and PQ-GPU.
-- `configs/`: paper configuration templates for 1B and 100M experiments.
+- `cuda/`: CUDA/C++ source for the query-time execution path, including IVF
+  routing, GPU top-k selection, Exact-CPU fine search, CPU residual-PQ kernels,
+  and shared GPU utilities.
+- `configs/`: reference configuration templates for the query-time parameters
+  used in the paper, such as `nlist`, `nprobe`, batch sizes, CPU threads, and
+  residual-PQ code sizes.
 
 ## Build
 
@@ -25,27 +29,16 @@ cmake --build build -j
 For older GPUs, replace `120` with the correct CUDA architecture.  The code was
 developed with CUDA 13.0 and C++17.
 
-The update-overlay runners can be built after the core project libraries:
+## Scope
 
-```bash
-cd updates
-./build.sh
-```
+This source release is intended to expose the query-time implementation, not to
+serve as a complete artifact package for every experiment in the paper.  The
+100M/1B evaluation requires external datasets and generated artifacts such as
+centroids, assignment arrays, reordered vectors, PQ codebooks, and residual-PQ
+codes.  Those artifacts are intentionally excluded because of their size.
 
-## Reproducing Paper Results
-
-The full 100M/1B experiments require external datasets and generated index
-artifacts.  The expected configuration is summarized in `configs/`.
-
-The high-level order is:
-
-1. Download or prepare base/query/ground-truth files.
-2. Train IVF centroids and assign base vectors.
-3. Reorder vectors into cluster-major layout.
-4. Optionally train residual-PQ codebooks and encode residual-PQ codes.
-5. Run Exact-CPU or PQ-GPU sweeps.
-6. Run the paper evaluation harness separately if full result reproduction is
-   required.
+Auxiliary experimental runners and the offline accelerated construction
+pipeline are not part of this public source package.
 
 ## License
 
